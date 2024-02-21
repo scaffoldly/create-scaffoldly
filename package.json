@@ -11,13 +11,13 @@
     "type": "git",
     "url": "https://github.com/scaffoldly/create-scaffoldly"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": {
-    "create-scaffoldly-app": "index.js",
-    "csa": "index.js"
+    "create-scaffoldly-app": "dist/index.js",
+    "csa": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "webpack",
     "postinstall": "yarn build",
     "start": "tsx src/index.ts"
   },
@@ -35,7 +35,11 @@
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
     "prompts": "^2.4.2",
-    "typescript": ">=5"
+    "source-map": "^0.7.4",
+    "ts-loader": "^9.5.1",
+    "typescript": ">=5",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   },
   "peerDependencies": {},
   "devDependencies": {
