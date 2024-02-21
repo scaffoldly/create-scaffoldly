@@ -11,10 +11,10 @@
     "type": "git",
     "url": "https://github.com/scaffoldly/create-scaffoldly"
   },
-  "main": "index.js",
+  "main": "cli.js",
   "bin": {
-    "create-scaffoldly-app": "index.js",
-    "csa": "index.js"
+    "create-scaffoldly-app": "cli.js",
+    "csa": "cli.js"
   },
   "scripts": {
     "build": "tsc",
