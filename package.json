@@ -18,6 +18,12 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@types/adm-zip": "^0.5.5",
+    "@types/comment-json": "^2.4.2",
+    "@types/cross-spawn": "^6.0.6",
+    "@types/minimist": "^1.2.5",
+    "@types/node": "18",
+    "@types/prompts": "^2.4.9",
     "adm-zip": "^0.5.10",
     "axios": "^1.6.7",
     "comment-json": "^4.2.3",
@@ -29,12 +35,6 @@
   },
   "peerDependencies": {},
   "devDependencies": {
-    "@types/adm-zip": "^0.5.5",
-    "@types/comment-json": "^2.4.2",
-    "@types/cross-spawn": "^6.0.6",
-    "@types/minimist": "^1.2.5",
-    "@types/node": "18",
-    "@types/prompts": "^2.4.9",
     "tsx": "^4.7.1"
   }
 }
