@@ -1,5 +1,5 @@
 node_modules/
-dist/
+index.js
 
 # Rendered projects
 my-app
