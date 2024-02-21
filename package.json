@@ -12,6 +12,10 @@
     "url": "https://github.com/scaffoldly/create-scaffoldly"
   },
   "main": "index.js",
+  "bin": {
+    "create-scaffoldly-app": "index.js",
+    "csa": "index.js"
+  },
   "scripts": {
     "build": "tsc",
     "postinstall": "yarn build",
