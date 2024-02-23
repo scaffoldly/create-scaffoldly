@@ -48,18 +48,13 @@ const FRAMEWORKS: Framework[] = [
     startCommand: "yarn dev",
     variants: [
       {
-        branch: "development",
+        branch: "headless",
         display: "Backend API (No Frontend)",
         color: blue,
       },
       {
         branch: "react-vite",
         display: "Backend API + React Frontend (w/Vite)",
-        color: blue,
-      },
-      {
-        branch: "react-scripts",
-        display: "Backend API + React Frontend (w/react-scripts)",
         color: blue,
       },
       {
@@ -228,6 +223,7 @@ async function init() {
   const files = fs.readdirSync(templateDir);
   for (const file of files.filter(
     (f) =>
+      f !== "README.md" &&
       f !== "package.json" &&
       f !== "yarn.lock" &&
       f !== "package-lock.json" &&
