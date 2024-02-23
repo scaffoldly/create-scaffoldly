@@ -2,12 +2,12 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import AdmZip from "adm-zip";
-import spawn from "cross-spawn";
 import minimist from "minimist";
 import prompts from "prompts";
 import { blue, red, reset, yellow } from "kolorist";
 import axios from "axios";
 import { parse, stringify } from "comment-json";
+import simpleGit from "simple-git";
 
 // Avoids autoconversion to number of the project name by defining that the args
 // non associated with an option ( _ ) needs to be parsed as a string. See #4606
@@ -19,33 +19,52 @@ const cwd = process.cwd();
 
 type ColorFunc = (str: string | number) => string;
 type Framework = {
-  name: string;
+  repo: string;
   display: string;
   color: ColorFunc;
   variants: FrameworkVariant[];
-  orgUrl: string;
-  repo: string;
-  branch: string;
+  downloadUrl: string;
+  startCommand: string;
 };
 type FrameworkVariant = {
-  name: string;
+  branch: string;
   display: string;
   color: ColorFunc;
-  customCommand?: string;
+};
+type Choice = {
+  projectName: string;
+  framework: Framework;
+  variant: string;
+  overwrite?: "yes";
+  packageName: string;
 };
 
 const FRAMEWORKS: Framework[] = [
   {
-    name: "fullstack",
-    display: "Full Stack",
-    orgUrl: "https://github.com/scaffoldly",
-    repo: "stack",
-    branch: "development",
+    display: "Serverless + Express on AWS",
+    downloadUrl: "https://codeload.github.com/scaffoldly",
+    repo: "stack-aws-serverless-express",
     color: yellow,
+    startCommand: "yarn dev",
     variants: [
       {
-        name: "serverless-express-react",
-        display: "Serverless + Express + React",
+        branch: "development",
+        display: "Backend API (No Frontend)",
+        color: blue,
+      },
+      {
+        branch: "react-vite",
+        display: "Backend API + React Frontend (w/Vite)",
+        color: blue,
+      },
+      {
+        branch: "react-scripts",
+        display: "Backend API + React Frontend (w/react-scripts)",
+        color: blue,
+      },
+      {
+        branch: "angular",
+        display: "Backend API + Angular Frontend",
         color: blue,
       },
     ],
@@ -53,7 +72,7 @@ const FRAMEWORKS: Framework[] = [
 ];
 
 const TEMPLATES = FRAMEWORKS.map(
-  (f) => (f.variants && f.variants.map((v) => v.name)) || [f.name]
+  (f) => (f.variants && f.variants.map((v) => v.branch)) || [f.repo]
 ).reduce((a, b) => a.concat(b), []);
 
 const renameFiles: Record<string, string | undefined> = {
@@ -146,7 +165,7 @@ async function init() {
           choices: FRAMEWORKS.map((framework) => {
             const frameworkColor = framework.color;
             return {
-              title: frameworkColor(framework.display || framework.name),
+              title: frameworkColor(framework.display || framework.repo),
               value: framework,
             };
           }),
@@ -160,8 +179,8 @@ async function init() {
             framework.variants.map((variant) => {
               const variantColor = variant.color;
               return {
-                title: variantColor(variant.display || variant.name),
-                value: variant.name,
+                title: variantColor(variant.display || variant.branch),
+                value: variant.branch,
               };
             }),
         },
@@ -178,7 +197,12 @@ async function init() {
   }
 
   // user choice associated with prompts
-  const { framework, overwrite, packageName, variant } = result;
+  const {
+    framework,
+    overwrite,
+    packageName,
+    variant: branch,
+  } = result as Choice;
 
   const root = path.join(cwd, targetDir);
 
@@ -188,59 +212,9 @@ async function init() {
     fs.mkdirSync(root, { recursive: true });
   }
 
-  // determine template
-  let template: string = variant || framework?.name || argTemplate;
-
-  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
-  const pkgManager = pkgInfo ? pkgInfo.name : "npm";
-  const isYarn1 = pkgManager === "yarn" && pkgInfo?.version.startsWith("1.");
-
-  const { customCommand } =
-    FRAMEWORKS.flatMap((f) => f.variants).find((v) => v.name === template) ??
-    {};
-
-  if (customCommand) {
-    const fullCustomCommand = customCommand
-      .replace(/^npm create /, () => {
-        // `bun create` uses it's own set of templates,
-        // the closest alternative is using `bun x` directly on the package
-        if (pkgManager === "bun") {
-          return "bun x create-";
-        }
-        return `${pkgManager} create `;
-      })
-      // Only Yarn 1.x doesn't support `@version` in the `create` command
-      .replace("@latest", () => (isYarn1 ? "" : "@latest"))
-      .replace(/^npm exec/, () => {
-        // Prefer `pnpm dlx`, `yarn dlx`, or `bun x`
-        if (pkgManager === "pnpm") {
-          return "pnpm dlx";
-        }
-        if (pkgManager === "yarn" && !isYarn1) {
-          return "yarn dlx";
-        }
-        if (pkgManager === "bun") {
-          return "bun x";
-        }
-        // Use `npm exec` in all other cases,
-        // including Yarn 1.x and other custom npm clients.
-        return "npm exec";
-      });
-
-    const [command, ...args] = fullCustomCommand.split(" ");
-    // we replace TARGET_DIR here because targetDir may include a space
-    const replacedArgs = args.map((arg) =>
-      arg.replace("TARGET_DIR", targetDir)
-    );
-    const { status } = spawn.sync(command, replacedArgs, {
-      stdio: "inherit",
-    });
-    process.exit(status ?? 0);
-  }
-
   console.log(`\nScaffolding project in ${root}...`);
 
-  const templateDir = await downloadAndExtractZip(framework);
+  const templateDir = await downloadAndExtractZip(framework, branch);
 
   const write = (file: string, content?: string) => {
     const targetPath = path.join(root, renameFiles[file] ?? file);
@@ -262,7 +236,7 @@ async function init() {
     write(file);
   }
 
-  // TODO: Edit README
+  // TODO: Generate README
   // TODO: Git init and change branch name to "development"
 
   const pkg = parse(
@@ -284,8 +258,14 @@ async function init() {
   write("package.json", stringify(pkg, null, 2) + "\n");
   write(".devcontainer/devcontainer.json", stringify(devcontainer, null, 2));
 
+  console.log(`Initializing git in ${root}...`);
+  const git = simpleGit(root);
+  await git.init({ "--initial-branch": "development" });
+  await git.add(".");
+  await git.commit("Initial commit");
+
   const cdProjectName = path.relative(cwd, root);
-  console.log(`\nDone. Now run:\n`);
+  console.log(`\nDone.\n`);
   if (root !== cwd) {
     console.log(
       `    cd ${
@@ -294,18 +274,22 @@ async function init() {
     );
   }
 
-  switch (pkgManager) {
-    case "yarn":
-      console.log("    yarn dev");
-      break;
-    default:
-      console.log(`    ${pkgManager} run dev`);
-      break;
-  }
-  console.log(`\nwhich will launch a devcontainer on your local machine.\n`);
+  console.log(`    ${framework.startCommand}\n`);
+  console.log(`Which will launch a devcontainer on your local machine.\n`);
+
   console.log(
-    `\nAlternatively, push this repository to GitHub to run in GitHub Codespaces!\n`
+    `Alternatively, push this repository to GitHub to develop in GitHub Codespaces:\n`
   );
+  console.log(`    1) Create a new repository on GitHub`);
+  console.log(`    2) git remote add origin <repository-url>`);
+  console.log(`    3) git push -u origin development`);
+  console.log(`    4) Open in GitHub Codespaces\n`);
+
+  console.log(`Once you're ready to deploy to AWS, run:\n`);
+  console.log(`    npx slydo deploy\n`);
+
+  console.log(`\n🚀 Thanks for using Scaffoldly!\n\n`);
+  // TODO DOCS URL
 }
 
 function formatTargetDir(targetDir: string | undefined) {
@@ -362,54 +346,23 @@ function emptyDir(dir: string) {
   }
 }
 
-function pkgFromUserAgent(userAgent: string | undefined) {
-  if (!userAgent) return undefined;
-  const pkgSpec = userAgent.split(" ")[0];
-  const pkgSpecArr = pkgSpec.split("/");
-  return {
-    name: pkgSpecArr[0],
-    version: pkgSpecArr[1],
-  };
-}
+async function downloadAndExtractZip(
+  framework: Framework,
+  branch: string
+): Promise<string> {
+  const { downloadUrl, repo } = framework;
 
-// function setupReactSwc(root: string, isTs: boolean) {
-//   editFile(path.resolve(root, "package.json"), (content) => {
-//     return content.replace(
-//       /"@vitejs\/plugin-react": ".+?"/,
-//       `"@vitejs/plugin-react-swc": "^3.5.0"`
-//     );
-//   });
-//   editFile(
-//     path.resolve(root, `vite.config.${isTs ? "ts" : "js"}`),
-//     (content) => {
-//       return content.replace(
-//         "@vitejs/plugin-react",
-//         "@vitejs/plugin-react-swc"
-//       );
-//     }
-//   );
-// }
-
-// function editFile(file: string, callback: (content: string) => string) {
-//   const content = fs.readFileSync(file, "utf-8");
-//   fs.writeFileSync(file, callback(content), "utf-8");
-// }
-
-async function downloadAndExtractZip(framework: Framework): Promise<string> {
-  const { orgUrl, repo, branch } = framework;
-  const downloadUrl = new URL(
-    `${orgUrl}/${repo}/archive/refs/heads/${branch}.zip`
-  );
+  const url = new URL(`${downloadUrl}/${repo}/zip/refs/heads/${branch}`);
 
   try {
     const response = await axios({
       method: "get",
-      url: downloadUrl.toString(),
+      url: url.toString(),
       responseType: "arraybuffer",
     });
 
     const tempDirPath = fs.mkdtempSync(path.join(os.tmpdir(), "template-"));
-    const tempFileName = downloadUrl.pathname.split("/").pop();
+    const tempFileName = url.pathname.split("/").pop();
 
     const tempZipPath = path.join(tempDirPath, tempFileName!);
     fs.writeFileSync(tempZipPath, response.data);
