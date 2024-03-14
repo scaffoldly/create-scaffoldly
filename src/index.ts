@@ -8,6 +8,7 @@ import { blue, red, reset, yellow } from "kolorist";
 import axios from "axios";
 import { parse, stringify } from "comment-json";
 import simpleGit from "simple-git";
+import { glob } from "glob";
 
 // Avoids autoconversion to number of the project name by defining that the args
 // non associated with an option ( _ ) needs to be parsed as a string. See #4606
@@ -233,7 +234,6 @@ async function init() {
   }
 
   // TODO: Generate README
-  // TODO: Git init and change branch name to "development"
 
   const pkg = parse(
     fs.readFileSync(path.join(templateDir, `package.json`), "utf-8")
@@ -241,7 +241,7 @@ async function init() {
 
   const devcontainer = parse(
     fs.readFileSync(
-      path.join(templateDir, `.devcontainer/devcontainer.json`),
+      path.join(templateDir, ".devcontainer", "devcontainer.json"),
       "utf-8"
     )
   ) as any;
@@ -252,7 +252,16 @@ async function init() {
   delete pkg.license;
 
   write("package.json", stringify(pkg, null, 2) + "\n");
-  write(".devcontainer/devcontainer.json", stringify(devcontainer, null, 2));
+  write(
+    path.join(".devcontainer", "devcontainer.json"),
+    stringify(devcontainer, null, 2)
+  );
+
+  (await glob([path.join(root, ".github", "workflows", "sly-*.yml")])).map(
+    (file) => {
+      fs.unlinkSync(file);
+    }
+  );
 
   console.log(`Initializing git in ${root}...`);
   const git = simpleGit(root);
@@ -260,25 +269,25 @@ async function init() {
   await git.add(".");
   await git.commit("Initial commit");
 
-  const cdProjectName = path.relative(cwd, root);
+  // const cdProjectName = path.relative(cwd, root);
   console.log(`\nDone.\n`);
-  if (root !== cwd) {
-    console.log(
-      `    cd ${
-        cdProjectName.includes(" ") ? `"${cdProjectName}"` : cdProjectName
-      }`
-    );
-  }
+  // if (root !== cwd) {
+  //   console.log(
+  //     `    cd ${
+  //       cdProjectName.includes(" ") ? `"${cdProjectName}"` : cdProjectName
+  //     }`
+  //   );
+  // }
 
-  console.log(`    ${framework.startCommand}\n`);
-  console.log(`Which will launch a devcontainer on your local machine.\n`);
+  // console.log(`    ${framework.startCommand}\n`);
+  // console.log(`Which will launch a devcontainer on your local machine.\n`);
 
   console.log(
-    `Alternatively, push this repository to GitHub to develop in GitHub Codespaces:\n`
+    `Next, push this repository to GitHub to develop using GitHub Codespaces:\n`
   );
   console.log(`    1) Create a new repository on GitHub`);
-  console.log(`    2) git remote add origin <repository-url>`);
-  console.log(`    3) git push -u origin development`);
+  console.log(`    2) Run: \`git remote add origin <repository-url>\``);
+  console.log(`    3) Run: \`git push -u origin development\``);
   console.log(`    4) Open in GitHub Codespaces\n`);
 
   console.log(`Once you're ready to deploy to AWS, run:\n`);
