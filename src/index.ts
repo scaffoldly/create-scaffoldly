@@ -264,14 +264,14 @@ async function init() {
     }
   );
 
+  console.log(`Installing dependencies using \`yarn\` in ${root}...`);
+  await exec(root, ["yarn", "install"]);
+
   console.log(`Initializing git in ${root}...`);
   const git = simpleGit(root);
   await git.init({ "--initial-branch": "development" });
   await git.add(".");
   await git.commit("Initial commit");
-
-  console.log(`Installing dependencies using \`yarn\`...`);
-  await exec(root, ["yarn", "install"]);
 
   const cdProjectName = path.relative(cwd, root);
   console.log(`\nDone.\n`);
