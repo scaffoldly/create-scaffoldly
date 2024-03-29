@@ -9,6 +9,7 @@ import axios from "axios";
 import { parse, stringify } from "comment-json";
 import simpleGit from "simple-git";
 import { glob } from "glob";
+import { exec } from "./exec";
 
 // Avoids autoconversion to number of the project name by defining that the args
 // non associated with an option ( _ ) needs to be parsed as a string. See #4606
@@ -269,18 +270,18 @@ async function init() {
   await git.add(".");
   await git.commit("Initial commit");
 
-  // const cdProjectName = path.relative(cwd, root);
-  console.log(`\nDone.\n`);
-  // if (root !== cwd) {
-  //   console.log(
-  //     `    cd ${
-  //       cdProjectName.includes(" ") ? `"${cdProjectName}"` : cdProjectName
-  //     }`
-  //   );
-  // }
+  console.log(`Installing dependencies using \`yarn\`...`);
+  await exec(root, ["yarn", "install"]);
 
-  // console.log(`    ${framework.startCommand}\n`);
-  // console.log(`Which will launch a devcontainer on your local machine.\n`);
+  const cdProjectName = path.relative(cwd, root);
+  console.log(`\nDone.\n`);
+  if (root !== cwd) {
+    console.log(
+      `    cd ${
+        cdProjectName.includes(" ") ? `"${cdProjectName}"` : cdProjectName
+      }\n`
+    );
+  }
 
   console.log(
     `Next, push this repository to GitHub to develop using GitHub Codespaces:\n`
@@ -289,12 +290,14 @@ async function init() {
   console.log(`    2) Run: \`git remote add origin <repository-url>\``);
   console.log(`    3) Run: \`git push -u origin development\``);
   console.log(`    4) Open in GitHub Codespaces\n`);
+  // TODO: npx slydo develop
 
-  console.log(`Once you're ready to deploy to AWS, run:\n`);
-  console.log(`    npx slydo deploy\n`);
+  console.log(`Once you're ready to deploy to AWS:\n`);
+  console.log(`    1) In GitHub, run the "Deploy" GitHub Action Workflow.\n`);
+  // TODO: npx slydo deploy
 
   console.log(`\n🚀 Thanks for using Scaffoldly!\n\n`);
-  // TODO DOCS URL
+  // TODO: DOCS URL
 }
 
 function formatTargetDir(targetDir: string | undefined) {

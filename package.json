@@ -40,10 +40,12 @@
     "ts-loader": "^9.5.1",
     "typescript": ">=5",
     "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "which": "^4.0.0"
   },
   "peerDependencies": {},
   "devDependencies": {
+    "@types/which": "^3.0.3",
     "tsx": "^4.7.1"
   }
 }
