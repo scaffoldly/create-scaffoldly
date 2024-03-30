@@ -264,6 +264,12 @@ async function init() {
     }
   );
 
+  sanitize(
+    path.join(root, ".gitignore"),
+    "### +CSA-OMIT ###",
+    "### -CSA-OMIT ###"
+  );
+
   console.log(`Installing dependencies using \`yarn\` in ${root}...`);
   await exec(root, ["yarn", "install"]);
 
@@ -304,6 +310,27 @@ function formatTargetDir(targetDir: string | undefined) {
   return targetDir?.trim().replace(/\/+$/g, "");
 }
 
+function sanitize(path: string, startMarker: string, endMarker: string) {
+  const text = fs.readFileSync(path, "utf-8");
+  const lines = text.split("\n");
+  let startLine = -1;
+  let endLine = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes(startMarker)) {
+      startLine = i;
+    } else if (lines[i].includes(endMarker)) {
+      endLine = i;
+      break;
+    }
+  }
+
+  if (startLine !== -1 && endLine !== -1) {
+    lines.splice(startLine, endLine - startLine + 1);
+  }
+
+  fs.writeFileSync(path, lines.join("\n"), { encoding: "utf-8" });
+}
 function copy(src: string, dest: string) {
   const stat = fs.statSync(src);
   if (stat.isDirectory()) {
