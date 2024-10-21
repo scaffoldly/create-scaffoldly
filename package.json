@@ -22,7 +22,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "scaffoldly": "^1.0.56",
+    "scaffoldly": "^1.0.57",
     "typescript": "^5.6.3"
   },
   "peerDependencies": {},
