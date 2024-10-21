@@ -5,11 +5,11 @@
     "node": ">=18"
   },
   "description": "Create Scaffoldly App",
-  "author": "scaffold.ly",
-  "license": "MIT",
+  "author": "scaffoldly",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/scaffoldly/create-scaffoldly"
+    "url": "https://github.com/scaffoldly/create-scaffoldly-app"
   },
   "main": "cli.js",
   "bin": {
