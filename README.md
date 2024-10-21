@@ -21,7 +21,7 @@ yarn create scaffoldly-app
 
 The code in this repository is licensed under the [Apache-2.0](LICENSE.md) license.
 
-The code in this repository and its branches are licensed under the [Apache-2.0](https://github.com/scaffoldly/scaffoldly-examples/tree/main?tab=Apache-2.0-1-ov-file) license.
+The code in [`scaffoldly-examples`](https://github.com/scaffoldly/scaffoldly-examples) and its branches are licensed under the [Apache-2.0](https://github.com/scaffoldly/scaffoldly-examples?tab=License-1-ov-file) license.
 
 The [`scaffoldly`](https://github.com/scaffoldly/scaffoldly) toolchain is licensed under the [FSL-1.1-Apache-2.0](https://github.com/scaffoldly/scaffoldly?tab=License-1-ov-file) license.
 
