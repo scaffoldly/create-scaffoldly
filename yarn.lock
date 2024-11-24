@@ -187,10 +187,10 @@ resolve-pkg-maps@^1.0.0:
   resolved "https://registry.yarnpkg.com/resolve-pkg-maps/-/resolve-pkg-maps-1.0.0.tgz#616b3dc2c57056b5588c31cdf4b3d64db133720f"
   integrity sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==
 
-scaffoldly@^1.0.71:
-  version "1.0.71"
-  resolved "https://registry.yarnpkg.com/scaffoldly/-/scaffoldly-1.0.71.tgz#1cf2805bdd9ceaaedfd43f929e0639addb0e153e"
-  integrity sha512-UznBuwEs8lCn/Ln8oJEjqKkNy+RERCbzxnfShobNfTcbLZSDplF+Q+GCSmp7JQRdDn7iF3bxgu2IG7o7v9FHbA==
+scaffoldly@^1.0.74:
+  version "1.0.74"
+  resolved "https://registry.yarnpkg.com/scaffoldly/-/scaffoldly-1.0.74.tgz#f988f1fbf22586eac88db4fb20466b90a85d25c2"
+  integrity sha512-3s6nNjyuUmvrIWZeNwLXuAajDIl65Hmfb/I1f+4+Uq94X556PurWaks9oLtMgbxE9i13s9nsZw9qcC5kWZqdcw==
   optionalDependencies:
     cpu-features "*"
 
