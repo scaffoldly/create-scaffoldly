@@ -1,6 +1,6 @@
 {
   "name": "create-scaffoldly-app",
-  "version": "0.0.17",
+  "version": "0.0.18-0",
   "engines": {
     "node": ">=18"
   },
